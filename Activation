@@ -1,0 +1,47 @@
+<?php
+$host = 'localhost';
+$dbname = 'my_database'; 
+$username = 'root'; 
+$password = ''; 
+
+// Create connection
+$conn = new mysqli($host, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Check if the activation_code parameter is passed
+if (isset($_GET['activation_code'])) {
+    $activation_code = $_GET['activation_code'];
+
+    // Prepare a select statement
+    $stmt = $conn->prepare("SELECT id FROM activation WHERE activation_code = ?");
+    $stmt->bind_param("s", $activation_code);
+
+    // Execute the statement
+    $stmt->execute();
+
+    // Store the result
+    $result = $stmt->get_result();
+
+    // Check if we have a match
+    if ($result->num_rows > 0) {
+        // Activation code exists
+        echo json_encode(["exists" => true]);
+    } else {
+        // Activation code does not exist
+        echo json_encode(["exists" => false]);
+    }
+
+    // Close statement
+    $stmt->close();
+} else {
+    // Activation_code parameter not provided
+    echo json_encode(["error" => "Activation code parameter is required"]);
+}
+
+// Close connection
+$conn->close();
+?>
